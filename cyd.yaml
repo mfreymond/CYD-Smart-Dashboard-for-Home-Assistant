@@ -569,6 +569,25 @@ text_sensor:
               if (norm == "windy" || norm == "breezy") return std::string("\uefd8");
               if (norm == "thunderstorm" || norm == "lightning" || norm == "storm") return std::string("\ue3e7");
               return std::string("${s6_icon}");
+        - lvgl.label.update:
+            id: icon_s6
+            text_color: !lambda |-
+              std::string cond = id(ha_weather).state;
+              // normalize: lowercase
+              for (auto &c : cond) c = tolower(c);
+              // remove spaces, underscores and hyphens
+              std::string norm;
+              for (char c : cond) if (c != ' ' && c != '_' && c != '-') norm.push_back(c);
+
+              // Yellow for sunny/clear and thunderstorm/lightning/storm
+              if (norm == "clear" || norm == "sunny" || norm == "clearnight" || norm == "partlycloudy") return lv_color_hex(0xFFD700);
+              if (norm == "thunderstorm" || norm == "lightning" || norm == "storm") return lv_color_hex(0xFFD700);
+
+              // Blue for snow
+              if (norm == "snow" || norm == "snowy") return lv_color_hex(0x00BFFF);
+
+              // Default / other: keep neutral gray
+              return lv_color_hex(0x888888);
 
 # ==============================================================================
 #  GRAPHICAL INTERFACE (LVGL)
@@ -840,4 +859,5 @@ lvgl:
                     entity_id: ${s6_tap_action}
 
                     
+
 
