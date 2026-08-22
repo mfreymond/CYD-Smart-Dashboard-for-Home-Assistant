@@ -124,7 +124,7 @@ substitutions:
     return "${s4_icon}";
     
   s4_color_logic: |-
-    if (x > 0) return lv_color_hex(0xFF5252);   
+    if (x > 0) return lv_color_hex(0x00008B);   
     return lv_color_hex(0x888888);               
 
   # --- SENSOR 5: BATTERY (Dynamic Icons) ---
