@@ -158,7 +158,7 @@ substitutions:
   s6_unit: "F"
   s6_tap_action: "script.dummy_script"
   # default Material Icon ligature for humidity-ish display — use ligature name so font ligatures render
-  s6_icon: "wb_cloudy"
+  s6_icon: "\ue42d"
 
   s6_icon_logic: |-
     return "${s6_icon}";
@@ -264,7 +264,8 @@ font:
     id: icon_font_32
     size: 32
     # Auto-populates based on your substitutions — add the weather ligatures we will use
-    glyphs: "${s1_icon}${s1_unavail_icon}${s5_all_dynamic_icons}${s6_icon} wb_sunny cloud umbrella ac_unit filter_drama air flash_on wb_cloudy"
+    # glyphs: "${s1_icon}${s1_unavail_icon}${s5_all_dynamic_icons}${s6_icon} wb_sunny cloud umbrella ac_unit filter_drama air flash_on wb_cloudy"
+    glyphs: "${s1_icon}${s1_unavail_icon}${s5_all_dynamic_icons}${s6_icon}\ue430\ue2bd\uf1ad\ueb3b\ue3dd\uefd8\ue3e7"
 
 # --- TIME ---
 time:
@@ -559,14 +560,14 @@ text_sensor:
               std::string norm;
               for (char c : cond) if (c != ' ' && c != '_' && c != '-') norm.push_back(c);
 
-              if (norm == "clear" || norm == "sunny" || norm == "clearnight" || norm == "clearnight") return std::string("wb_sunny");
-              if (norm == "partlycloudy" || norm == "partlycloudy") return std::string("wb_sunny");
-              if (norm == "cloudy" || norm == "mostlycloudy" || norm == "mostlycloudy") return std::string("cloud");
-              if (norm == "rain" || norm == "rainy" || norm == "pouring" || norm == "showers") return std::string("umbrella");
-              if (norm == "snow" || norm == "snowy") return std::string("ac_unit");
-              if (norm == "fog" || norm == "mist" || norm == "haze") return std::string("filter_drama");
-              if (norm == "windy" || norm == "breezy") return std::string("air");
-              if (norm == "thunderstorm" || norm == "lightning" || norm == "storm") return std::string("flash_on");
+              if (norm == "clear" || norm == "sunny" || norm == "clearnight" || norm == "clearnight") return std::string("\ue430");
+              if (norm == "partlycloudy" || norm == "partlycloudy") return std::string("\ue430");
+              if (norm == "cloudy" || norm == "mostlycloudy" || norm == "mostlycloudy") return std::string("\ue2bd");
+              if (norm == "rain" || norm == "rainy" || norm == "pouring" || norm == "showers") return std::string("\uf1ad");
+              if (norm == "snow" || norm == "snowy") return std::string("\ueb3b");
+              if (norm == "fog" || norm == "mist" || norm == "haze") return std::string("\ue3dd");
+              if (norm == "windy" || norm == "breezy") return std::string("\uefd8");
+              if (norm == "thunderstorm" || norm == "lightning" || norm == "storm") return std::string("\ue3e7");
               return std::string("${s6_icon}");
 
 # ==============================================================================
