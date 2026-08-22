@@ -7,7 +7,7 @@
 # - Cheap Yellow Display (ESP32-2432S028 or compatible)
 # - Built-in ILI9341 320x240 display
 # - Built-in XPT2046 touchscreen
-#
+# #
 
 esphome:
   name: cyd-bbq
@@ -157,8 +157,8 @@ substitutions:
   s6_label: "Outdoor"
   s6_unit: "F"
   s6_tap_action: "script.dummy_script"
-  #s6_icon: "\uf157"
-  s6_icon: "\ue81a"
+  # default Material Icon ligature for humidity-ish display — use ligature name so font ligatures render
+  s6_icon: "wb_cloudy"
 
   s6_icon_logic: |-
     return "${s6_icon}";
@@ -263,8 +263,8 @@ font:
   - file: "gfonts://Material Icons"
     id: icon_font_32
     size: 32
-    # Auto-populates based on your substitutions!
-    glyphs: "${s1_icon}${s1_unavail_icon}${s5_all_dynamic_icons}${s6_icon}"
+    # Auto-populates based on your substitutions — add the weather ligatures we will use
+    glyphs: "${s1_icon}${s1_unavail_icon}${s5_all_dynamic_icons}${s6_icon} wb_sunny cloud umbrella ac_unit filter_drama air flash_on wb_cloudy"
 
 # --- TIME ---
 time:
@@ -330,9 +330,9 @@ sensor:
 #            brightness: !lambda return x; 
 #            transition_length: 1s
 
-  # ==============================================================================
+  # ======================================================================
   #  HA SENSOR DATA INJECTION
-  # ==============================================================================
+  # ======================================================================
   - platform: wifi_signal
     name: "WiFi Signal Sensor"
     update_interval: 60s
@@ -462,14 +462,15 @@ sensor:
               if (isnan(x)) return std::string("--");
               float f = x * 9.0f / 5.0f + 32.0f;
               return str_sprintf("%.1f°F", f);
-        - lvgl.label.update:
-            id: icon_s6
-            text: !lambda |-
-              ${s6_icon_logic}
-        - lvgl.label.update:
-            id: icon_s6
-            text_color: !lambda |-
-              ${s6_color_logic}
+        # NOTE: icon update for sensor 6 is now driven by the Home Assistant weather entity (see text_sensor below)
+        #- lvgl.label.update:
+        #    id: icon_s6
+        #    text: !lambda |-
+        #      ${s6_icon_logic}
+        #- lvgl.label.update:
+        #    id: icon_s6
+        #    text_color: !lambda |-
+        #      ${s6_color_logic}
 
 text_sensor:
   - platform: homeassistant
@@ -541,7 +542,33 @@ text_sensor:
               float c = id(ha_sensor_1).state;
               float f = c * 9.0f / 5.0f + 32.0f;
               return str_sprintf("%.0f°F", f);
-              
+
+  # Home Assistant weather hookup — map weather.forecast_home state to Material Icon ligatures
+  - platform: homeassistant
+    id: ha_weather
+    entity_id: weather.forecast_home
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: icon_s6
+            text: !lambda |-
+              std::string cond = id(ha_weather).state;
+              // normalize: lowercase
+              for (auto &c : cond) c = tolower(c);
+              // remove spaces, underscores and hyphens
+              std::string norm;
+              for (char c : cond) if (c != ' ' && c != '_' && c != '-') norm.push_back(c);
+
+              if (norm == "clear" || norm == "sunny" || norm == "clearnight" || norm == "clearnight") return std::string("wb_sunny");
+              if (norm == "partlycloudy" || norm == "partlycloudy") return std::string("wb_sunny");
+              if (norm == "cloudy" || norm == "mostlycloudy" || norm == "mostlycloudy") return std::string("cloud");
+              if (norm == "rain" || norm == "rainy" || norm == "pouring" || norm == "showers") return std::string("umbrella");
+              if (norm == "snow" || norm == "snowy") return std::string("ac_unit");
+              if (norm == "fog" || norm == "mist" || norm == "haze") return std::string("filter_drama");
+              if (norm == "windy" || norm == "breezy") return std::string("air");
+              if (norm == "thunderstorm" || norm == "lightning" || norm == "storm") return std::string("flash_on");
+              return std::string("${s6_icon}");
+
 # ==============================================================================
 #  GRAPHICAL INTERFACE (LVGL)
 # ==============================================================================
@@ -812,3 +839,4 @@ lvgl:
                     entity_id: ${s6_tap_action}
 
                     
+
