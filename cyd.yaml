@@ -1,37 +1,61 @@
+# https://github.com/mfreymond/CYD-Smart-Dashboard-for-Home-Assistant
+# heavily inspired by:
+# https://github.com/drrcastro/CYD-Smart-Dashboard-for-Home-Assistant
+#
+#
+# Target hardware
+# - Cheap Yellow Display (ESP32-2432S028 or compatible)
+# - Built-in ILI9341 320x240 display
+# - Built-in XPT2046 touchscreen
+#
+
 esphome:
-  name: YOUR DEVICE NAME
-  friendly_name: YOUR DEVICE FRIENDLY NAME
+  name: cyd-bbq
+  friendly_name: CYD-BBQ
   on_boot:
     priority: -10
     then:
-      - light.turn_on: backlight
+      - light.turn_on: 
+          id: backlight
+          brightness: 1.0
+          transition_length: 0s
+
 
 esp32:
   board: esp32dev
   framework:
-    type: esp-idf
+    type: arduino
 
+# Enable logging
 logger:
-  # DEBUG level to see LDR sensor values
-  level: DEBUG
 
+# Enable Home Assistant API
 api:
   encryption:
-    key: "YOUR API KEY"
+    key: "1qTsGlr1rsOWSJsoKyt9lORCPc1NkEkupG2G2wPKWPs="
 
 ota:
   - platform: esphome
-    password: "YOUR OTA PASSWORD"
+    password: "1ed06b601aa04938d5bd886ddfad48bf"
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  on_connect:
+    then:
+      - logger.log: "WiFi connected successfully!"
+      - light.turn_on: backlight
+
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Cyd Fallback Hotspot"
-    password: "1fuPtnYrqCC6"
+    ssid: "Cyd-1 Fallback Hotspot"
+    password: "Ccw4tryg5OUL"
 
 captive_portal:
 
+
+  
 substitutions:
   # ==============================================================================
   #  CONFIGURATION HEADER (MASTER TEMPLATE)
@@ -39,66 +63,69 @@ substitutions:
   #  The variable 'x' represents the current numerical value from the HA sensor.
   # ==============================================================================
 
-  # --- SENSOR 1: SOLAR ---
-  s1_entity: "sensor.foxess_solar_power"
-  s1_label: "Solar Power"
-  s1_unit: "W"
+  # --- SENSOR 1: Sensor 1, probe 1 ---
+  s1_entity: "sensor.kitchen_wired_meat_thermometer_probe_1"
+  s1_label: "S1 - P1"
+  s1_unit: "°F"
   s1_tap_action: "script.dummy_script"
-  s1_icon: "\uec0f"
+  s1_icon: "\ue1ff"
+  # glyph to show when the entity is unavailable/invalid — change to any Material Icon code you like
+  s1_unavail_icon: "\ue14b"
   
   s1_icon_logic: |-
     return "${s1_icon}"; 
     
   s1_color_logic: |-
-    if (x > 2000) return lv_color_hex(0xFFA500); 
     if (x > 0) return lv_color_hex(0xFFD700);    
     return lv_color_hex(0x888888);               
 
-  # --- SENSOR 2: WATER ---
-  s2_entity: "sensor.esp_temp_temperatura_agua"
-  s2_label: "Water Temp"
-  s2_unit: "°C"
+  # --- SENSOR 2: Sensor 1, probe 2  ---
+  s2_entity: "sensor.kitchen_wired_meat_thermometer_probe_2"
+  s2_label: "S1 - P2"
+  s2_unit: "°F"
   s2_tap_action: "script.trigger_water_heater"
-  s2_icon: "\uf061"
-
+  s2_icon: ${s1_icon}  # <--- Reference s1 instead of typing "\ue1ff" again
+  # glyph to show when the entity is unavailable/invalid — change to any Material Icon code you like
+  s2_unavail_icon: "$s1_unavail_icon"
+  
   s2_icon_logic: |-
     return "${s2_icon}";
     
   s2_color_logic: |-
-    if (x >= 45) return lv_color_hex(0xE05400); 
-    if (x >= 40) return lv_color_hex(0x33A400); 
-    if (x >= 30) return lv_color_hex(0x28FFB6); 
-    return lv_color_hex(0x00BFFF);              
+    if (x > 0) return lv_color_hex(0x28FFB6);    
+    return lv_color_hex(0x888888);               
 
-  # --- SENSOR 3: GRID ---
-  s3_entity: "sensor.foxess_grid_consumption_power"
-  s3_label: "Grid Power"
-  s3_unit: "W"
+  # --- SENSOR 3: Sensor 2 - Probe 1 ---
+  s3_entity: "sensor.wireless_meat_thermometer_probes_2_probe_1"
+  s3_label: "S2 - P1"
+  s3_unit: "°F"
   s3_tap_action: "script.dummy_script"
-  s3_icon: "\uf102"
-
+  s3_icon: ${s1_icon}  # <--- Reference s1 instead of typing "\ue1ff" again
+  # glyph to show when the entity is unavailable/invalid — change to any Material Icon code you like
+  s3_unavail_icon: "$s1_unavail_icon"
+  
   s3_icon_logic: |-
     return "${s3_icon}";
     
   s3_color_logic: |-
-    if (x > 3000) return lv_color_hex(0xFF5252); 
-    return lv_color_hex(0xFF6347);               
+    if (x > 0) return lv_color_hex(0xFF5252); 
+    return lv_color_hex(0x888888);               
 
-  # --- SENSOR 4: OUTDOOR ---
-  s4_entity: "sensor.clima_exterior_temperatura"
-  s4_label: "Outdoor"
-  s4_unit: "°C"
+  # --- SENSOR 4: Sensor 2 - Probe 2 ---
+  s4_entity: "sensor.wireless_meat_thermometer_probes_2_probe_2"
+  s4_label: "S2 - P2"
+  s4_unit: "°F"
   s4_tap_action: "script.dummy_script"
-  s4_icon: "\ue1ff"
-
+  s4_icon: ${s1_icon}  # <--- Reference s1 instead of typing "\ue1ff" again
+  # glyph to show when the entity is unavailable/invalid — change to any Material Icon code you like
+  s4_unavail_icon: "$s1_unavail_icon"
+  
   s4_icon_logic: |-
     return "${s4_icon}";
     
   s4_color_logic: |-
-    if (x > 30) return lv_color_hex(0xFF5252);   
-    if (x > 25) return lv_color_hex(0xFFA500);   
-    if (x < 15) return lv_color_hex(0x00BFFF);   
-    return lv_color_hex(0x32CD32);               
+    if (x > 0) return lv_color_hex(0xFF5252);   
+    return lv_color_hex(0x888888);               
 
   # --- SENSOR 5: BATTERY (Dynamic Icons) ---
   s5_entity: "sensor.foxess_bat_soc"
@@ -125,12 +152,13 @@ substitutions:
     if (x >= 20) return lv_color_hex(0x8B0000);  
     return lv_color_hex(0x640B0B);               
 
-  # --- SENSOR 6: HUMIDITY ---
-  s6_entity: "sensor.clima_exterior_humidade"
-  s6_label: "Humidity"
-  s6_unit: "%%"
+  # --- SENSOR 6: OUTDOOR ---
+  s6_entity: "sensor.outside_environment_outdoor_temperature"
+  s6_label: "Outdoor"
+  s6_unit: "F"
   s6_tap_action: "script.dummy_script"
-  s6_icon: "\ue798"
+  #s6_icon: "\uf157"
+  s6_icon: "\ue81a"
 
   s6_icon_logic: |-
     return "${s6_icon}";
@@ -155,29 +183,50 @@ light:
     name: Display Backlight
     id: backlight
     restore_mode: ALWAYS_ON
-    default_transition_length: 0.5s
+#    default_transition_length: 0.5s
+    default_transition_length: 0s
 
 spi:
-  - id: tft
-    clk_pin: GPIO14
-    mosi_pin: GPIO13
-    miso_pin: GPIO12
+#  - id: tft
+#    clk_pin: GPIO14
+#    mosi_pin: GPIO13
+#    miso_pin: GPIO12
   - id: touch
     clk_pin: GPIO25
     mosi_pin: GPIO32
     miso_pin: GPIO39
 
+  - id: lcd
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+    miso_pin: GPIO12
+
+#  - id: my_touchscreen
+#    clk_pin: GPIO25
+#    mosi_pin: GPIO32
+#    miso_pin: GPIO39
+
+
 display:
   - platform: ili9xxx
     id: my_display
-    model: ILI9341
-    spi_id: tft
-    cs_pin: GPIO15
-    dc_pin: GPIO2
-    auto_clear_enabled: false
+    spi_id: lcd
+    # model: ILI9341
+    # model: ST7789V
+    model: ILI9342
+    color_palette: 8BIT
+    cs_pin: 15
+    dc_pin: 2
     invert_colors: false
-    color_order: RGB
-    dimensions: 
+    update_interval: never
+    auto_clear_enabled: false
+
+    transform:
+      swap_xy: true
+      mirror_x: false
+      mirror_y: false
+
+    dimensions:
       width: 320
       height: 240
 
@@ -201,7 +250,7 @@ font:
   - file: "gfonts://Roboto"
     id: roboto_24
     size: 24
-    glyphs: "0123456789%.°WCckmVA "
+    glyphs: "0123456789%.°WCcFfkmVA -N/"
   - file: "gfonts://Roboto"
     id: roboto_16
     size: 16
@@ -214,7 +263,7 @@ font:
     id: icon_font_32
     size: 32
     # Auto-populates based on your substitutions!
-    glyphs: "${s1_icon}${s2_icon}${s3_icon}${s4_icon}${s5_all_dynamic_icons}${s6_icon}"
+    glyphs: "${s1_icon}${s1_unavail_icon}${s5_all_dynamic_icons}${s6_icon}"
 
 # --- TIME ---
 time:
@@ -235,62 +284,76 @@ time:
 
 # --- AUTO BRIGHTNESS (POLYNOMIAL CURVE) ---
 sensor:
-  # 1. RAW Sensor: Reads voltage for debugging
-  - platform: adc
-    pin: GPIO34
-    name: "LDR Voltage"
-    id: ldr_volts
-    update_interval: 1s
-    attenuation: 12db
-    filters:
-      - sliding_window_moving_average: {window_size: 10, send_every: 1}
-    on_value:
-      then:
-        - logger.log: 
-            format: "LDR Volts: %.2f V"
-            args: [ 'x' ]
+#  # 1. RAW Sensor: Reads voltage for debugging
+#  - platform: adc
+#    pin: GPIO34
+#    name: "LDR Voltage"
+#    id: ldr_volts
+#    update_interval: 1s
+#    attenuation: 12db
+#    filters:
+#      - sliding_window_moving_average: {window_size: 10, send_every: 1}
+#    on_value:
+#      then:
+#        - logger.log: 
+#            format: "LDR Volts: %.2f V"
+#            args: [ 'x' ]
 
-  # 2. PROCESSED Sensor: Smooth Inverted Curve
-  - platform: template
-    name: "Target Brightness"
-    id: ldr_processed
-    update_interval: 1s
-    lambda: |-
-      return id(ldr_volts).state;
-    filters:
-      # POLYNOMIAL CURVE (Degree 3) - Inverted Logic
-      # CYD LDR Logic: Lower Voltage = More Light
-      - calibrate_polynomial:
-          degree: 3
-          datapoints:
-            - 0.00 -> 1.00  # 0V -> 100%
-            - 0.14 -> 1.00  # 0.14V -> 100% (Max Brightness)
-            - 0.60 -> 0.70  # 0.6V -> 70% (Keep it bright)
-            - 1.00 -> 0.30  # 1.0V -> 30% (Drop quickly)
-            - 1.40 -> 0.05  # 1.4V -> 5% (Minimum)
-            - 3.00 -> 0.05  # Safety clamp
-      - clamp: {min_value: 0.05, max_value: 1.00}
-    on_value:
-      then:
-        - logger.log: 
-            format: "Calculated Brightness: %.0f %%"
-            args: [ 'x * 100' ]
-        - light.turn_on:
-            id: backlight
-            brightness: !lambda return x; 
-            transition_length: 1s
+#  # 2. PROCESSED Sensor: Smooth Inverted Curve
+#  - platform: template
+#    name: "Target Brightness"
+#   id: ldr_processed
+#    update_interval: 1s
+#    lambda: |-
+#      return id(ldr_volts).state;
+#    filters:
+#      # POLYNOMIAL CURVE (Degree 3) - Inverted Logic
+#      # CYD LDR Logic: Lower Voltage = More Light
+#      - calibrate_polynomial:
+#          degree: 3
+#          datapoints:
+#            - 0.00 -> 1.00  # 0V -> 100%
+#            - 0.14 -> 1.00  # 0.14V -> 100% (Max Brightness)
+#            - 0.60 -> 0.70  # 0.6V -> 70% (Keep it bright)
+#            - 1.00 -> 0.30  # 1.0V -> 30% (Drop quickly)
+#            - 1.40 -> 0.05  # 1.4V -> 5% (Minimum)
+#            - 3.00 -> 0.05  # Safety clamp
+#      - clamp: {min_value: 0.05, max_value: 1.00}
+#    on_value:
+#      then:
+#        - logger.log: 
+#            format: "Calculated Brightness: %.0f %%"
+#            args: [ 'x * 100' ]
+#        - light.turn_on:
+#            id: backlight
+#            brightness: !lambda return x; 
+#            transition_length: 1s
 
   # ==============================================================================
   #  HA SENSOR DATA INJECTION
   # ==============================================================================
+  - platform: wifi_signal
+    name: "WiFi Signal Sensor"
+    update_interval: 60s
+
   - platform: homeassistant
     id: ha_sensor_1
     entity_id: ${s1_entity}
     on_value:
       then:
+#        - logger.log:
+#            format: "Sensor 1 Probe 1 Temp: %.1f"
+#            args: ['val_s1']
+
+#        - lvgl.label.update:
+#            id: val_s1
+#            text: !lambda 'return str_sprintf("%.0f${s1_unit}", x);'
         - lvgl.label.update:
             id: val_s1
-            text: !lambda 'return str_sprintf("%.0f${s1_unit}", x);'
+            text: !lambda |-
+              if (isnan(x)) return std::string("--");
+              float f = x * 9.0f / 5.0f + 32.0f;
+              return str_sprintf("%.1f°F", f);
         - lvgl.label.update:
             id: icon_s1
             text: !lambda |-
@@ -305,9 +368,19 @@ sensor:
     entity_id: ${s2_entity}
     on_value:
       then:
+#        - logger.log:
+#            format: "Sensor 1 Probe 2 Temp: %.1f"
+#            args: ['val_s2']
+
+#        - lvgl.label.update:
+#            id: val_s2
+#            text: !lambda 'return str_sprintf("%.1f${s2_unit}", x);'
         - lvgl.label.update:
             id: val_s2
-            text: !lambda 'return str_sprintf("%.1f${s2_unit}", x);'
+            text: !lambda |-
+              if (isnan(x)) return std::string("--");
+              float f = x * 9.0f / 5.0f + 32.0f;
+              return str_sprintf("%.1f°F", f);
         - lvgl.label.update:
             id: icon_s2
             text: !lambda |-
@@ -324,7 +397,10 @@ sensor:
       then:
         - lvgl.label.update:
             id: val_s3
-            text: !lambda 'return str_sprintf("%.0f${s3_unit}", x);'
+            text: !lambda |-
+              if (isnan(x)) return std::string("--");
+              float f = x * 9.0f / 5.0f + 32.0f;
+              return str_sprintf("%.1f°F", f);
         - lvgl.label.update:
             id: icon_s3
             text: !lambda |-
@@ -341,7 +417,10 @@ sensor:
       then:
         - lvgl.label.update:
             id: val_s4
-            text: !lambda 'return str_sprintf("%.1f${s4_unit}", x);'
+            text: !lambda |-
+              if (isnan(x)) return std::string("--");
+              float f = x * 9.0f / 5.0f + 32.0f;
+              return str_sprintf("%.1f°F", f);
         - lvgl.label.update:
             id: icon_s4
             text: !lambda |-
@@ -373,9 +452,15 @@ sensor:
     entity_id: ${s6_entity}
     on_value:
       then:
+#        - lvgl.label.update:
+#            id: val_s6
+#            text: !lambda 'return str_sprintf("%.1f${s6_unit}", x);'
         - lvgl.label.update:
             id: val_s6
-            text: !lambda 'return str_sprintf("%.0f${s6_unit}", x);'
+            text: !lambda |-
+              if (isnan(x)) return std::string("--");
+              float f = x * 9.0f / 5.0f + 32.0f;
+              return str_sprintf("%.1f°F", f);
         - lvgl.label.update:
             id: icon_s6
             text: !lambda |-
@@ -385,6 +470,77 @@ sensor:
             text_color: !lambda |-
               ${s6_color_logic}
 
+text_sensor:
+  - platform: homeassistant
+    id: ha_s1_raw
+    entity_id: ${s1_entity}
+    on_value:
+      then:
+        # Update icon: show unavailable glyph if raw state is unavailable/unknown/empty
+        - lvgl.label.update:
+            id: icon_s1
+            text: !lambda |-
+              auto st = id(ha_s1_raw).state;
+              if (st == "unavailable" || st == "unknown" || st == "") {
+                return std::string("${s1_unavail_icon}");
+              }
+              return std::string("${s1_icon}");
+  - platform: homeassistant
+    id: ha_s2_raw
+    entity_id: ${s2_entity}
+    on_value:
+      then:
+        # Update icon: show unavailable glyph if raw state is unavailable/unknown/empty
+        - lvgl.label.update:
+            id: icon_s2
+            text: !lambda |-
+              auto st = id(ha_s2_raw).state;
+              if (st == "unavailable" || st == "unknown" || st == "") {
+                return std::string("${s1_unavail_icon}");
+              }
+              return std::string("${s2_icon}");
+  - platform: homeassistant
+    id: ha_s3_raw
+    entity_id: ${s3_entity}
+    on_value:
+      then:
+        # Update icon: show unavailable glyph if raw state is unavailable/unknown/empty
+        - lvgl.label.update:
+            id: icon_s3
+            text: !lambda |-
+              auto st = id(ha_s3_raw).state;
+              if (st == "unavailable" || st == "unknown" || st == "") {
+                return std::string("${s1_unavail_icon}");
+              }
+              return std::string("${s3_icon}");
+  - platform: homeassistant
+    id: ha_s4_raw
+    entity_id: ${s4_entity}
+    on_value:
+      then:
+        # Update icon: show unavailable glyph if raw state is unavailable/unknown/empty
+        - lvgl.label.update:
+            id: icon_s4
+            text: !lambda |-
+              auto st = id(ha_s4_raw).state;
+              if (st == "unavailable" || st == "unknown" || st == "") {
+                return std::string("${s1_unavail_icon}");
+              }
+              return std::string("${s4_icon}");
+
+        # Update numeric label: show fallback when unavailable, otherwise use numeric sensor value
+        - lvgl.label.update:
+            id: val_s1
+            text: !lambda |-
+              auto st = id(ha_s1_raw).state;
+              if (st == "unavailable" || st == "unknown" || st == "") {
+                return std::string("--");
+              }
+              if (isnan(id(ha_sensor_1).state)) return std::string("--");
+              float c = id(ha_sensor_1).state;
+              float f = c * 9.0f / 5.0f + 32.0f;
+              return str_sprintf("%.0f°F", f);
+              
 # ==============================================================================
 #  GRAPHICAL INTERFACE (LVGL)
 # ==============================================================================
@@ -449,8 +605,8 @@ lvgl:
                   x: 45
                   y: 12
             on_press:
-              - homeassistant.service:
-                  service: script.turn_on
+              - homeassistant.action:
+                  action: script.turn_on
                   data:
                     entity_id: ${s1_tap_action}
 
@@ -489,8 +645,8 @@ lvgl:
                   x: 45
                   y: 12
             on_press:
-              - homeassistant.service:
-                  service: script.turn_on
+              - homeassistant.action:
+                  action: script.turn_on
                   data:
                     entity_id: ${s2_tap_action}
 
@@ -529,8 +685,8 @@ lvgl:
                   x: 45
                   y: 12
             on_press:
-              - homeassistant.service:
-                  service: script.turn_on
+              - homeassistant.action:
+                  action: script.turn_on
                   data:
                     entity_id: ${s3_tap_action}
 
@@ -569,8 +725,8 @@ lvgl:
                   x: 45
                   y: 12
             on_press:
-              - homeassistant.service:
-                  service: script.turn_on
+              - homeassistant.action:
+                  action: script.turn_on
                   data:
                     entity_id: ${s4_tap_action}
 
@@ -609,8 +765,8 @@ lvgl:
                   x: 45
                   y: 12
             on_press:
-              - homeassistant.service:
-                  service: script.turn_on
+              - homeassistant.action:
+                  action: script.turn_on
                   data:
                     entity_id: ${s5_tap_action}
 
@@ -649,7 +805,9 @@ lvgl:
                   x: 45
                   y: 12
             on_press:
-              - homeassistant.service:
-                  service: script.turn_on
+              - homeassistant.action:
+                  action: script.turn_on
                   data:
                     entity_id: ${s6_tap_action}
+
+                    
